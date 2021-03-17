@@ -120,6 +120,24 @@ def download_image(url, folder='images/') -> str:
     return path
 
 
+def get_comments(html) -> list:
+    """Gets comments from html code.
+
+    :param html: html code
+    :return: comments
+    """
+
+    soup = BeautifulSoup(html, 'lxml')
+    comment_elms = soup.find_all('div', class_='texts')
+
+    comments = list()
+    if comment_elms:
+        for comment_elm in comment_elms:
+            comments.append(comment_elm.find('span').text)
+
+    return comments
+
+
 if __name__ == "__main__":
     requests.packages.urllib3.disable_warnings()
 
@@ -130,6 +148,9 @@ if __name__ == "__main__":
             path_image = download_image(image_url, IMAGES_FOLDER)
             relative_txt_link = get_txt_link(html)
             path_book = download_txt(relative_txt_link, f"{title}.txt", BOOKS_FOLDER)
+            comments = get_comments(html)
+            if comments:
+                print(comments)
         except requests.HTTPError:
             print(f"For book with id={book_id} there is a redirection")
         except FileNotFoundError:
