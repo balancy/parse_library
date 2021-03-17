@@ -6,7 +6,8 @@ from pathvalidate import sanitize_filename
 import requests
 
 
-FOLDER = "books/"
+BOOKS_FOLDER = "books/"
+IMAGES_FOLDER = "images/"
 SITE_URL = "https://tululu.org/"
 NUMBER_BOOKS = 10
 
@@ -36,18 +37,19 @@ def get_html(link, book_id) -> str:
     return r.text
 
 
-def get_filename(html) -> str:
-    """Gets filename from html. It'll be the html title with .txt extension.
+def get_title_image(html) -> (str, str):
+    """Gets book title and image link from html.
 
     :param html: html code
-    :return: filename
+    :return: book title and image link
     """
 
     soup = BeautifulSoup(html, "lxml")
-    searching_line = soup.find('table', class_='tabs').find('div', id='content').find('h1').text
-    title, author = searching_line.split('::')
+    title_author = soup.find('table', class_='tabs').find('div', id='content').find('h1').text
+    title, author = title_author.split('::')
+    image_url = soup.find('table', class_='d_book').find('img')['src']
 
-    return f"{sanitize_filename(title.strip())}.txt"
+    return f"{sanitize_filename(title.strip())}", image_url
 
 
 def create_dir(path) -> None:
@@ -96,15 +98,38 @@ def download_txt(url, filename, folder='books/') -> str:
     return path
 
 
+def download_image(url, folder='images/') -> str:
+    """Saves image in given folder.
+
+    :param url: link where to get image
+    :param folder: folder where to save image
+    :return: path to the image
+    """
+
+    create_dir(folder)
+
+    response = requests.get(f"{SITE_URL}{url}", verify=False)
+    response.raise_for_status()
+
+    image_name = url.split('/')[-1]
+    path = f"{folder}{image_name}"
+
+    with open(path, 'wb') as f:
+        f.write(response.content)
+
+    return path
+
+
 if __name__ == "__main__":
     requests.packages.urllib3.disable_warnings()
 
     for book_id in range(1, NUMBER_BOOKS):
         try:
             html = get_html(SITE_URL, book_id)
-            filename = get_filename(html)
+            title, image_url = get_title_image(html)
+            path_image = download_image(image_url, IMAGES_FOLDER)
             relative_txt_link = get_txt_link(html)
-            path = download_txt(relative_txt_link, filename, FOLDER)
+            path_book = download_txt(relative_txt_link, f"{title}.txt", BOOKS_FOLDER)
         except requests.HTTPError:
             print(f"For book with id={book_id} there is a redirection")
         except FileNotFoundError:
