@@ -14,6 +14,7 @@ if __name__ == "__main__":
 
     for book_id in range(1, NUMBER_BOOKS):
         try:
+            print(book_id)
             book = Book(book_id=book_id)
             html = book.get_html()
 
@@ -21,10 +22,11 @@ if __name__ == "__main__":
             path_image_on_disc = book.download_image(relative_image_url)
 
             relative_txt_url = book.get_txt_link(html)
-            path_txt_on_disc = book.download_txt(relative_txt_url, title)
+            if not relative_txt_url:
+                path_txt_on_disc = book.download_txt(relative_txt_url, title)
 
             comments = book.get_comments(html)
+            genre = book.get_genre(html)
+
         except requests.HTTPError:
             print(f"There is no article for book with id={book_id}")
-        except FileNotFoundError:
-            print(f"There is no text version for book with id={book_id}")

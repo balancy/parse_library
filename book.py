@@ -80,7 +80,7 @@ class Book:
         soup = BeautifulSoup(html, 'lxml')
         link_to_txt = soup.find('a', title=re.compile('скачать книгу txt'))
         if not link_to_txt:
-            raise FileNotFoundError
+            return ''
 
         return link_to_txt['href']
 
@@ -113,8 +113,22 @@ class Book:
         soup = BeautifulSoup(html, 'lxml')
         comment_elms = soup.find_all('div', class_='texts')
 
-        if comment_elms:
-            comments = [comment_elm.find('span').text for comment_elm in comment_elms]
-            return comments
+        if not comment_elms:
+            return list()
 
-        return list()
+        return [comment_elm.find('span').text for comment_elm in comment_elms]
+
+    @staticmethod
+    def get_genre(html) -> list:
+        """Gets book genre.
+
+        :param html: html code
+        :return: genre
+        """
+
+        soup = BeautifulSoup(html, 'lxml')
+        genre_elms = soup.find_all('a', title=re.compile('перейти к книгам этого жанра'))
+        if not genre_elms:
+            return list()
+
+        return [genre_elm.text for genre_elm in genre_elms]
