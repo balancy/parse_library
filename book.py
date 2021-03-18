@@ -38,18 +38,30 @@ class Book:
 
     @staticmethod
     def get_title_image(html) -> (str, str):
-        """Gets book title and image link from html code.
+        """Gets book title and author from html code.
 
         :param html: html code
-        :return: book title and image link
+        :return: book title, author
         """
 
         soup = BeautifulSoup(html, "lxml")
         title_author = soup.find('table', class_='tabs').find('div', id='content').find('h1').text
         title, author = title_author.split('::')
+
+        return title.strip(), author.strip()
+
+    @staticmethod
+    def get_image_url(html) -> str:
+        """Gets book image url html code.
+
+        :param html: html code
+        :return: image url
+        """
+
+        soup = BeautifulSoup(html, "lxml")
         image_url = soup.find('table', class_='d_book').find('img')['src']
 
-        return f"{title.strip()}", image_url
+        return image_url
 
     def download_image(self, image_url) -> str:
         """Saves image in given folder.
