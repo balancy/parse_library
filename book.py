@@ -7,17 +7,18 @@ import requests
 
 
 class Book:
-    def __init__(self, site_url="https://tululu.org/", book_id=1, image_folder='images/', books_folder='books/'):
+    def __init__(self, book_id, site_url="https://tululu.org/", images_folder='images/', books_folder='books/'):
         self.site_url = site_url
         self.book_id = book_id
-        self.image_folder = image_folder
+        self.images_folder = images_folder
         self.books_folder = books_folder
 
-    def create_dirs(self) -> None:
+    @staticmethod
+    def check_folders(images_folder='images/', books_folder='books/') -> None:
         """Checks if folders exist. If not, create them.
         """
 
-        for folder in (self.books_folder, self.image_folder):
+        for folder in (images_folder, books_folder):
             if not os.path.exists(folder):
                 os.makedirs(folder)
 
@@ -48,7 +49,7 @@ class Book:
         title, author = title_author.split('::')
         image_url = soup.find('table', class_='d_book').find('img')['src']
 
-        return f"{sanitize_filename(title.strip())}", image_url
+        return f"{title.strip()}", image_url
 
     def download_image(self, image_url) -> str:
         """Saves image in given folder.
@@ -61,7 +62,7 @@ class Book:
         response.raise_for_status()
 
         image_name = image_url.split('/')[-1]
-        path = f"{self.image_folder}{image_name}"
+        path = f"{self.images_folder}{image_name}"
 
         with open(path, 'wb') as f:
             f.write(response.content)
@@ -94,7 +95,7 @@ class Book:
         response = requests.get(f"{self.site_url}{text_url}", verify=False)
         response.raise_for_status()
 
-        path = f"{self.books_folder}{title}.txt"
+        path = f"{self.books_folder}{sanitize_filename(title)}.txt"
 
         with open(path, 'wb') as f:
             f.write(response.content)
@@ -112,9 +113,8 @@ class Book:
         soup = BeautifulSoup(html, 'lxml')
         comment_elms = soup.find_all('div', class_='texts')
 
-        comments = list()
         if comment_elms:
-            for comment_elm in comment_elms:
-                comments.append(comment_elm.find('span').text)
+            comments = [comment_elm.find('span').text for comment_elm in comment_elms]
+            return comments
 
-        return comments
+        return list()
