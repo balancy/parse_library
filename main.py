@@ -1,49 +1,46 @@
 import argparse
 
-import requests
-
-from book import Book
-
-BOOKS_FOLDER = "books/"
-IMAGES_FOLDER = "images/"
-SITE_URL = "https://tululu.org/"
+from scripts import *
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Download books (title, author, genre, image, comments).")
-    parser.add_argument("start_id", help="Book id to start parsing with")
-    parser.add_argument("end_id", help="Book id to end parsing with")
+    parser.add_argument("start_id", help="Book id to start parsing with", type=int)
+    parser.add_argument("end_id", help="Book id to end parsing with", type=int)
     args = parser.parse_args()
 
     requests.packages.urllib3.disable_warnings()
 
-    Book.check_folders(books_folder=BOOKS_FOLDER, images_folder=IMAGES_FOLDER)
+    check_folder(BOOKS_FOLDER)
+    check_folder(IMAGES_FOLDER)
 
-    for book_id in range(int(args.start_id), int(args.end_id)):
+    for book_id in range(args.start_id, args.end_id):
         try:
-            book = Book(book_id=book_id)
-            html = book.get_html()
-
-            # title, author
-            title, author = book.get_title_image(html)
-            print(f"Название: {title}")
-            print(f"Автор: {author}")
-
-            # image
-            relative_image_url = book.get_image_url(html)
-            path_image_on_disc = book.download_image(relative_image_url)
-
-            # text
-            relative_txt_url = book.get_txt_link(html)
-            if not relative_txt_url:
-                path_txt_on_disc = book.download_txt(relative_txt_url, title)
-
-            # comments
-            comments = book.get_comments(html)
-
-            # genre
-            genre = book.get_genre(html)
-
-            print()
-
+            soup = fetch_parsed_html(book_id)
         except requests.HTTPError:
-            pass
+            continue
+
+        # title, author
+        title, author = extract_title_image(soup)
+        print(f"Название: {title}\nАвтор: {author}")
+
+        # image
+        image_url = extract_image_url(soup)
+        path_image = download_image_return_path(image_url)
+        print(f"Путь к изображению: '{path_image}'")
+
+        # text
+        txt_url = extract_txt_url(soup)
+        if txt_url:
+            path_txt = download_txt_return_path(txt_url, title)
+            print(f"Путь к текстовой версии книги: '{path_txt}'")
+
+        # comments
+        comments = extract_comments(soup)
+        if comments:
+            print(f"Комментарии: {'; '.join(comments)}")
+
+        # genre
+        genre = extract_genre(soup)
+        print(f"Жанр книги: {', '.join(genre)}")
+
+        print()
