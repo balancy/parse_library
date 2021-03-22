@@ -1,6 +1,7 @@
 import argparse
+import os
 
-from scripts import *
+from scripts_extract_bookpage_elements import *
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Download books (title, author, genre, image, comments).")
@@ -10,8 +11,8 @@ if __name__ == "__main__":
 
     requests.packages.urllib3.disable_warnings()
 
-    check_folder(BOOKS_FOLDER)
-    check_folder(IMAGES_FOLDER)
+    os.makedirs(BOOKS_FOLDER, exist_ok=True)
+    os.makedirs(IMAGES_FOLDER, exist_ok=True)
 
     for book_id in range(args.start_id, args.end_id):
         try:
@@ -20,7 +21,7 @@ if __name__ == "__main__":
             continue
 
         # title, author
-        title, author = extract_title_image(soup)
+        title, author = extract_title_author(soup)
         print(f"Название: {title}\nАвтор: {author}")
 
         # image

@@ -1,4 +1,3 @@
-import os
 import re
 
 from bs4 import BeautifulSoup
@@ -9,16 +8,6 @@ import requests
 BOOKS_FOLDER = "books/"
 IMAGES_FOLDER = "images/"
 SITE_URL = "https://tululu.org/"
-
-
-def check_folder(folder) -> None:
-    """Checks if folder exists. If not, create it.
-
-    :param folder: folder to check
-    """
-
-    if not os.path.exists(folder):
-        os.makedirs(folder)
 
 
 def fetch_parsed_html(book_id):
@@ -38,7 +27,7 @@ def fetch_parsed_html(book_id):
     return soup
 
 
-def extract_title_image(soup) -> (str, str):
+def extract_title_author(soup) -> (str, str):
     """Gets book title and author from parsed html.
 
     :param soup: parsed html
