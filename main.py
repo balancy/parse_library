@@ -1,7 +1,7 @@
 import argparse
 import os
 
-from scripts_extract_bookpage_elements import *
+from scripts_fetch_bookpage_elements import *
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Download books (title, author, genre, image, comments).")
@@ -20,28 +20,23 @@ if __name__ == "__main__":
         except requests.HTTPError:
             continue
 
-        # title, author
         title, author = extract_title_author(soup)
         print(f"Название: {title}\nАвтор: {author}")
 
-        # image
         image_url = extract_image_url(soup)
-        path_image = download_image_return_path(image_url)
+        path_image = download_image(image_url)
         print(f"Путь к изображению: '{path_image}'")
 
-        # text
         txt_url = extract_txt_url(soup)
         if txt_url:
-            path_txt = download_txt_return_path(txt_url, title)
+            path_txt = download_txt(txt_url, title)
             print(f"Путь к текстовой версии книги: '{path_txt}'")
 
-        # comments
         comments = extract_comments(soup)
         if comments:
             print(f"Комментарии: {'; '.join(comments)}")
 
-        # genre
-        genre = extract_genre(soup)
-        print(f"Жанр книги: {', '.join(genre)}")
+        genres = extract_genres(soup)
+        print(f"Жанр книги: {', '.join(genres)}")
 
         print()

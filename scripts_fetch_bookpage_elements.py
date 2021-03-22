@@ -50,8 +50,8 @@ def extract_image_url(soup) -> str:
     return soup.find('table', class_='d_book').find('img')['src']
 
 
-def download_image_return_path(image_url) -> str:
-    """Downloads image from its url and returns its path.
+def download_image(image_url) -> str:
+    """Downloads image from its url.
 
     :param image_url: link where to get image
     :return: path to the image on the drive
@@ -77,13 +77,11 @@ def extract_txt_url(soup):
     """
 
     link_to_txt = soup.find('a', title=re.compile('скачать книгу txt'))
-    if not link_to_txt:
-        return
-
-    return link_to_txt['href']
+    if link_to_txt:
+        return link_to_txt['href']
 
 
-def download_txt_return_path(text_url, title) -> str:
+def download_txt(text_url, title) -> str:
     """Downloads text version of the book and returns path to it.
 
     :param text_url: url where to get file from
@@ -110,21 +108,18 @@ def extract_comments(soup):
     """
 
     comment_elms = soup.find_all('div', class_='texts')
-    if not comment_elms:
-        return
 
-    return [f"'{comment_elm.find('span').text}'" for comment_elm in comment_elms]
+    if comment_elms:
+        return [f"'{comment_elm.find('span').text}'" for comment_elm in comment_elms]
 
 
-def extract_genre(soup):
-    """Gets book genre.
+def extract_genres(soup):
+    """Gets book genres.
 
     :param soup: parsed html
-    :return: book genre
+    :return: book genres
     """
 
     genre_elms = soup.find_all('a', title=re.compile('перейти к книгам этого жанра'))
-    if not genre_elms:
-        return
 
     return [genre_elm.text for genre_elm in genre_elms]
