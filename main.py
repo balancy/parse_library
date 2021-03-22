@@ -1,7 +1,12 @@
 import argparse
 import os
 
-from scripts_fetch_bookpage_elements import *
+import requests
+
+from scripts_fetch_bookpage_elements import (BOOKS_FOLDER, IMAGES_FOLDER, fetch_parsed_html, extract_title_author,
+                                             extract_image_url, download_image, extract_txt_url, download_txt,
+                                             extract_comments, extract_genres)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Download books (title, author, genre, image, comments).")
