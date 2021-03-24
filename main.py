@@ -1,7 +1,6 @@
 import argparse
 import json
 import os
-import re
 
 from bs4 import BeautifulSoup
 from pathvalidate import sanitize_filename
@@ -51,7 +50,7 @@ def extract_title_author(soup) -> (str, str):
     :return: book title, author
     """
 
-    title_author = soup.find('table', class_='tabs').find('div', id='content').find('h1').text
+    title_author = soup.select_one("table.tabs div#content h1").text
     title, author = title_author.split('::')
 
     return title.strip(), author.strip()
@@ -64,7 +63,7 @@ def download_image(soup) -> str:
     :return: path to the image on the drive
     """
 
-    image_url = soup.find('table', class_='d_book').find('img')['src']
+    image_url = soup.select_one("table.d_book img")['src']
     response = requests.get(f"{SITE_URL}{image_url}", verify=False)
     response.raise_for_status()
 
@@ -84,7 +83,7 @@ def extract_txt_url(soup):
     :return: relative link to text version of the book
     """
 
-    link_to_txt = soup.find('a', title=re.compile('скачать книгу txt'))
+    link_to_txt = soup.select_one("a[title*='скачать книгу txt']")
     if link_to_txt:
         return link_to_txt['href']
 
@@ -115,7 +114,7 @@ def extract_comments(soup):
     :return: comments
     """
 
-    comment_elms = soup.find_all('div', class_='texts')
+    comment_elms = soup.select("div.texts")
     if comment_elms:
         return [f"{comment_elm.find('span').text}" for comment_elm in comment_elms]
 
@@ -127,7 +126,7 @@ def extract_genres(soup):
     :return: book genres
     """
 
-    genre_elms = soup.find_all('a', title=re.compile('перейти к книгам этого жанра'))
+    genre_elms = soup.select("a[title*='перейти к книгам этого жанра']")
     return [genre_elm.text for genre_elm in genre_elms]
 
 
@@ -146,17 +145,15 @@ def create_descriptive_json(books_urls):
             continue
 
         record = dict()
-        txt_url = extract_txt_url(soup)
-        if not txt_url:
-            continue
+        if txt_url := extract_txt_url(soup):
+            record['title'], record['author'] = extract_title_author(soup)
+            record['img_src'] = download_image(soup)
+            if comments := extract_comments(soup):
+                record['comments'] = comments
+            record['genres'] = extract_genres(soup)
+            record['book_path'] = download_txt(txt_url, record['title'])
 
-        record['title'], record['author'] = extract_title_author(soup)
-        record['img_src'] = download_image(soup)
-        record['comments'] = extract_comments(soup)
-        record['genres'] = extract_genres(soup)
-        record['book_path'] = download_txt(txt_url, record['title'])
-
-        descriptive_json.append(record)
+            descriptive_json.append(record)
 
     with open('library.json', 'w', encoding='utf-8') as file:
         json.dump(descriptive_json, file, ensure_ascii=False)
@@ -164,7 +161,8 @@ def create_descriptive_json(books_urls):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Download books (title, author, genre, image, comments).")
-    parser.add_argument("num_pages", help="How many pages to download books from", type=int)
+    parser.add_argument("-s", "--start_page", help="Which page to start download books from", type=int, required=True)
+    parser.add_argument("-e", "--end_page", help="Which page to finish download books from", type=int, default=0)
     args = parser.parse_args()
 
     requests.packages.urllib3.disable_warnings()
@@ -172,5 +170,5 @@ if __name__ == "__main__":
     os.makedirs(BOOKS_FOLDER, exist_ok=True)
     os.makedirs(IMAGES_FOLDER, exist_ok=True)
 
-    books_urls = find_books_urls(args.num_pages)
+    books_urls = find_books_urls(args.start_page, args.end_page if args.end_page > args.start_page else 0)
     create_descriptive_json(books_urls)

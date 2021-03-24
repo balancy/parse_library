@@ -7,27 +7,28 @@ URL_SITE = "https://tululu.org"
 URL_SYFY_SUFFIX = "/l55/"
 
 
-def find_books_urls(num_pages=1):
-    """Find sy-fy books urls from a given number of pages in Sy-Fy category on site tululu.org
+def find_books_urls(start_page, end_page=0):
+    """Find sy-fy books urls from pages starting at start_page and finishing at end_page
 
-    :param num_pages: number of pages
+    :param start_page: page to start looking books at
+    :param end_page: page to finish looking books at
     :return: books urls
     """
 
-    if num_pages < 1:
-        print("Задайте число страниц большее или равное 1")
+    if start_page < 1:
+        print("Задайте стартовую страницу больше 1")
         return
 
+    end_page = end_page if end_page > start_page else start_page
     all_books = []
-    for pagenumber in range(1, num_pages+1):
+    for pagenumber in range(start_page, end_page+1):
         r = requests.get(f"{URL_SITE}{URL_SYFY_SUFFIX}{pagenumber}", verify=False, allow_redirects=False)
         r.raise_for_status()
 
         soup = BeautifulSoup(r.content, 'lxml')
 
-        content = soup.find('div', id='content')
-        books = content.find_all('a', title=re.compile('Бесплатная библиотека.*читать online'))
-        for book in books:
+        selector = "#content [title*='читать online']"
+        for book in soup.select(selector):
             all_books.append(f"{URL_SITE}{book['href']}")
 
     return all_books
