@@ -1,4 +1,5 @@
 import argparse
+import json
 import os
 import re
 
@@ -6,13 +7,15 @@ from bs4 import BeautifulSoup
 from pathvalidate import sanitize_filename
 import requests
 
+from parse_tululu_category import find_books_urls
+
 BOOKS_FOLDER = "books/"
 IMAGES_FOLDER = "images/"
 SITE_URL = "https://tululu.org/"
 
 
-def fetch_parsed_html(book_id):
-    """Gets parsed html code from book page.
+def fetch_parsed_html_by_id(book_id):
+    """Gets parsed html code from book page by its od.
 
     :param book_id: book id
     :return: parsed html
@@ -28,6 +31,19 @@ def fetch_parsed_html(book_id):
     return soup
 
 
+def fetch_parsed_html_by_url(book_url):
+    """Gets parsed html code from book page url.
+
+    :param book_url: book url
+    :return: parsed html
+    """
+
+    r = requests.get(book_url, verify=False, allow_redirects=False)
+    r.raise_for_status()
+
+    return BeautifulSoup(r.text, "lxml")
+
+
 def extract_title_author(soup) -> (str, str):
     """Gets book title and author from parsed html.
 
@@ -41,7 +57,7 @@ def extract_title_author(soup) -> (str, str):
     return title.strip(), author.strip()
 
 
-def extract_download_image(soup) -> str:
+def download_image(soup) -> str:
     """Gets book image url and downloads image from this url.
 
     :param soup: parsed html
@@ -101,7 +117,7 @@ def extract_comments(soup):
 
     comment_elms = soup.find_all('div', class_='texts')
     if comment_elms:
-        return [f"'{comment_elm.find('span').text}'" for comment_elm in comment_elms]
+        return [f"{comment_elm.find('span').text}" for comment_elm in comment_elms]
 
 
 def extract_genres(soup):
@@ -115,10 +131,40 @@ def extract_genres(soup):
     return [genre_elm.text for genre_elm in genre_elms]
 
 
+def create_descriptive_json(books_urls):
+    """Create descriptive json file containing information about all downloaded books.
+
+    :param books_urls: urls for books
+    """
+
+    descriptive_json = []
+    for book_url in books_urls:
+        print(book_url)
+        try:
+            soup = fetch_parsed_html_by_url(book_url)
+        except requests.HTTPError:
+            continue
+
+        record = dict()
+        txt_url = extract_txt_url(soup)
+        if not txt_url:
+            continue
+
+        record['title'], record['author'] = extract_title_author(soup)
+        record['img_src'] = download_image(soup)
+        record['comments'] = extract_comments(soup)
+        record['genres'] = extract_genres(soup)
+        record['book_path'] = download_txt(txt_url, record['title'])
+
+        descriptive_json.append(record)
+
+    with open('library.json', 'w', encoding='utf-8') as file:
+        json.dump(descriptive_json, file, ensure_ascii=False)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Download books (title, author, genre, image, comments).")
-    parser.add_argument("start_id", help="Book id to start parsing with", type=int)
-    parser.add_argument("end_id", help="Book id to end parsing with", type=int)
+    parser.add_argument("num_pages", help="How many pages to download books from", type=int)
     args = parser.parse_args()
 
     requests.packages.urllib3.disable_warnings()
@@ -126,28 +172,5 @@ if __name__ == "__main__":
     os.makedirs(BOOKS_FOLDER, exist_ok=True)
     os.makedirs(IMAGES_FOLDER, exist_ok=True)
 
-    for book_id in range(args.start_id, args.end_id):
-        try:
-            soup = fetch_parsed_html(book_id)
-        except requests.HTTPError:
-            continue
-
-        title, author = extract_title_author(soup)
-        print(f"Название: {title}\nАвтор: {author}")
-
-        path_image = extract_download_image(soup)
-        print(f"Путь к изображению: '{path_image}'")
-
-        txt_url = extract_txt_url(soup)
-        if txt_url:
-            path_txt = download_txt(txt_url, title)
-            print(f"Путь к текстовой версии книги: '{path_txt}'")
-
-        comments = extract_comments(soup)
-        if comments:
-            print(f"Комментарии: {'; '.join(comments)}")
-
-        genres = extract_genres(soup)
-        print(f"Жанр книги: {', '.join(genres)}")
-
-        print()
+    books_urls = find_books_urls(args.num_pages)
+    create_descriptive_json(books_urls)
