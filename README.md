@@ -1,6 +1,6 @@
 # Library parser
 
-Script allows parsing books from [tululu.org](https://tululu.org/). It parses book title, author, genre, image, comments and text if they are present.
+Script allows parsing Sci Fi books from [tululu.org](https://tululu.org/). It parses book title, author, genres, image, comments and text if they are present.
 
 ### How to install
 
@@ -20,6 +20,7 @@ python -m venv env
 ```console
 source env/bin/activate
 ```
+&nbsp;&nbsp;&nbsp;
 For Windows:
 ```console
 env\scripts\activate
@@ -30,10 +31,51 @@ env\scripts\activate
 pip install -r requirements.txt
 ```
 
-5. Run the script by command:
+## How to use
+
+General way to use it is via command:
+
 ```console
-python main.py start_id end_id
+python main.py --start_page start --end_page end
 ```
 where 
-- `start_id` is the book id to start parsing with
-- `end_id` is the book id to end parsing with
+- `start` is the page to start download books from
+- `end` is the page to finish download books at. This argument isn't necessary. Without it, the script will only 
+  download books from the `start` page. 
+
+Complete list of script arguments :
+
+```console
+--books_folder folder
+``` 
+&nbsp;&nbsp;&nbsp;
+where folder is the folder to save text versions of books. By default, folder is 'books/'
+
+```console
+--imgs_folder folder
+``` 
+&nbsp;&nbsp;&nbsp;
+where folder is the folder to save cover images of books. By default, folder is 'images/'
+
+```console
+--json_path folder
+``` 
+&nbsp;&nbsp;&nbsp;
+where folder is the folder to save all downloaded library info in JSON format. By default, folder is root folder.  
+
+```console
+--skip_images
+``` 
+&nbsp;&nbsp;&nbsp;
+If this argument given (flag enabled), then script will skip books cover images downloading.  
+
+```console
+--skip_txt
+``` 
+&nbsp;&nbsp;&nbsp;
+If this argument given (flag enabled), then script will skip books text versions downloading.  
+
+You can always see the help how to use script by command:
+```console
+python main.py -h
+```

@@ -145,7 +145,6 @@ def create_descriptive_json(books_urls, books_folder, img_folder, json_path, fla
 
     descriptive_json = []
     for book_url in books_urls:
-        print(book_url)
         try:
             soup = fetch_parsed_html_by_url(book_url)
         except requests.HTTPError:
@@ -185,7 +184,7 @@ if __name__ == "__main__":
     parser.add_argument("-s", "--start_page", help="Which page to start download books from", type=int, required=True)
     parser.add_argument("-e", "--end_page", help="Which page to finish download books at", type=int, default=0)
     parser.add_argument("--books_folder", help="Folder to save books", default=BOOKS_FOLDER)
-    parser.add_argument("--img_folder", help="Folder to save images", default=IMAGES_FOLDER)
+    parser.add_argument("--imgs_folder", help="Folder to save images", default=IMAGES_FOLDER)
     parser.add_argument("--skip_imgs", action="store_true", help="Skip images downloading?")
     parser.add_argument("--skip_txt", action="store_true", help="Skip text versions downloading?")
     parser.add_argument("--json_path", help="Folder to save descriptive json file", default='')
@@ -200,7 +199,7 @@ if __name__ == "__main__":
         create_descriptive_json(
             books_urls,
             args.books_folder,
-            args.img_folder,
+            args.imgs_folder,
             args.json_path,
             args.skip_imgs,
             args.skip_txt,
