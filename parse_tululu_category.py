@@ -8,15 +8,15 @@ URL_SYFY_SUFFIX = "/l55/"
 
 
 def find_books_urls(start_page, end_page=0):
-    """Find sy-fy books urls from pages starting at start_page and finishing at end_page
+    """Find sy-fy books urls from pages starting from start_page and finishing at end_page
 
-    :param start_page: page to start looking books at
+    :param start_page: page to start looking books from
     :param end_page: page to finish looking books at
     :return: books urls
     """
 
     if start_page < 1:
-        print("Задайте стартовую страницу больше 1")
+        print("Задайте стартовую страницу больше или равную 1")
         return
 
     end_page = end_page if end_page > start_page else start_page
