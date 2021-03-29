@@ -36,32 +36,40 @@ pip install -r requirements.txt
 General way to use it is via command:
 
 ```console
-python main.py --start_page start --end_page end
+python main.py
 ```
-where 
-- `start` is the page to start download books from
-- `end` is the page to finish download books at. This argument isn't necessary. Without it, the script will only 
-  download books from the `start` page. 
 
 Complete list of script arguments :
+
+```console
+--start_page start
+``` 
+&nbsp;&nbsp;&nbsp;
+where `start` is the page to start downloads books from. Default value is 1.
+
+```console
+--end_page end
+``` 
+&nbsp;&nbsp;&nbsp;
+where `end` is the page to finish download books at. Default value is the last page in category.
 
 ```console
 --books_folder folder
 ``` 
 &nbsp;&nbsp;&nbsp;
-where folder is the folder to save text versions of books. By default, folder is 'books/'
+where `folder` is the folder to save text versions of books. By default, folder is 'books/'
 
 ```console
 --imgs_folder folder
 ``` 
 &nbsp;&nbsp;&nbsp;
-where folder is the folder to save cover images of books. By default, folder is 'images/'
+where `folder` is the folder to save cover images of books. By default, folder is 'images/'
 
 ```console
 --json_path folder
 ``` 
 &nbsp;&nbsp;&nbsp;
-where folder is the folder to save all downloaded library info in JSON format. By default, folder is root folder.  
+where `folder` is the folder to save all downloaded library info in JSON format. By default, folder is root folder.  
 
 ```console
 --skip_images

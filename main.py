@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 from pathvalidate import sanitize_filename
 import requests
 
-from parse_tululu_category import find_books_urls
+from parse_tululu_category import find_last_page_number, find_books_urls
 
 BOOKS_FOLDER = "books/"
 IMAGES_FOLDER = "images/"
@@ -181,8 +181,9 @@ def make_folders(folders_list) -> None:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Download books (title, author, genre, image, comments).")
-    parser.add_argument("-s", "--start_page", help="Which page to start download books from", type=int, required=True)
-    parser.add_argument("-e", "--end_page", help="Which page to finish download books at", type=int, default=0)
+    parser.add_argument("-s", "--start_page", help="Which page to start download books from", type=int, default=1)
+    parser.add_argument("-e", "--end_page", help="Which page to finish download books at", type=int,
+                        default=find_last_page_number())
     parser.add_argument("--books_folder", help="Folder to save books", default=BOOKS_FOLDER)
     parser.add_argument("--imgs_folder", help="Folder to save images", default=IMAGES_FOLDER)
     parser.add_argument("--skip_imgs", action="store_true", help="Skip images downloading?")
@@ -192,7 +193,7 @@ if __name__ == "__main__":
 
     requests.packages.urllib3.disable_warnings()
 
-    make_folders((args.books_folder, args.img_folder, args.json_path))
+    make_folders((args.books_folder, args.imgs_folder, args.json_path))
 
     books_urls = find_books_urls(args.start_page, args.end_page)
     if books_urls:
