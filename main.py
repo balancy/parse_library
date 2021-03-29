@@ -13,23 +13,6 @@ IMAGES_FOLDER = "images/"
 SITE_URL = "https://tululu.org/"
 
 
-def fetch_parsed_html_by_id(book_id):
-    """Gets parsed html code from book page by its od.
-
-    :param book_id: book id
-    :return: parsed html
-    """
-
-    r = requests.get(f"{SITE_URL}/b{book_id}/", verify=False, allow_redirects=False)
-    r.raise_for_status()
-
-    if r.status_code == 302:
-        raise requests.HTTPError
-
-    soup = BeautifulSoup(r.text, "lxml")
-    return soup
-
-
 def fetch_parsed_html_by_url(book_url):
     """Gets parsed html code from book page url.
 
@@ -148,6 +131,7 @@ def create_descriptive_json(books_urls, books_folder, img_folder, json_path, fla
         try:
             soup = fetch_parsed_html_by_url(book_url)
         except requests.HTTPError:
+            print(f"'book_url' is not found.")
             continue
 
         record = dict()
