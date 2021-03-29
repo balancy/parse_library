@@ -1,6 +1,7 @@
 import argparse
 import json
 import os
+from urllib import parse
 
 from bs4 import BeautifulSoup
 from pathvalidate import sanitize_filename
@@ -143,7 +144,8 @@ def create_descriptive_json(books_urls, books_folder, img_folder, json_path, fla
             record['img_src'] = download_image(soup, img_folder)
         if not flag_skip_txt:
             if txt_url := extract_txt_url(soup):
-                record['book_path'] = download_txt(txt_url, record['title'], books_folder)
+                book_id = parse.parse_qs(parse.urlparse(txt_url).query)['id'][0]
+                record['book_path'] = download_txt(txt_url, f"{book_id}_{record['title']}", books_folder)
 
         if comments := extract_comments(soup):
             record['comments'] = comments
