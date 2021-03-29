@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 from pathvalidate import sanitize_filename
 import requests
 
-from parse_tululu_category import find_last_page_number, find_books_urls
+from parse_tululu_category import check_for_redirect, find_last_page_number, find_books_urls
 
 BOOKS_FOLDER = "books/"
 IMAGES_FOLDER = "images/"
@@ -20,10 +20,11 @@ def fetch_parsed_html_by_url(book_url):
     :return: parsed html
     """
 
-    r = requests.get(book_url, verify=False, allow_redirects=False)
-    r.raise_for_status()
+    response = requests.get(book_url, verify=False, allow_redirects=False)
+    response.raise_for_status()
+    check_for_redirect(response.status_code)
 
-    return BeautifulSoup(r.text, "lxml")
+    return BeautifulSoup(response.text, "lxml")
 
 
 def extract_title_author(soup) -> (str, str):
@@ -50,6 +51,7 @@ def download_image(soup, img_folder) -> str:
     image_url = soup.select_one("table.d_book img")['src']
     response = requests.get(f"{SITE_URL}{image_url}", verify=False)
     response.raise_for_status()
+    check_for_redirect(response.status_code)
 
     image_name = os.path.basename(image_url)
     path = os.path.join(img_folder, image_name)
@@ -83,6 +85,7 @@ def download_txt(text_url, title, books_folder) -> str:
 
     response = requests.get(f"{SITE_URL}{text_url}", verify=False)
     response.raise_for_status()
+    check_for_redirect(response.status_code)
 
     path = os.path.join(books_folder, f"{sanitize_filename(title)}.txt")
 
