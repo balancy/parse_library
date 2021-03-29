@@ -138,18 +138,21 @@ def create_descriptive_json(books_urls, books_folder, img_folder, json_path, fla
             print(f"'book_url' is not found.")
             continue
 
-        record = dict()
-        record["title"], record["author"] = extract_title_author(soup)
-        if not flag_skip_images:
-            record["img_src"] = download_image(soup, img_folder)
+        author, title = extract_title_author(soup)
+        comments = extract_comments(soup)
+
+        record = {
+            'title': title,
+            'author': author,
+            'img_src': download_image(soup, img_folder) if not flag_skip_images else None,
+            'comments': comments if comments else None,
+            'genres': extract_genres(soup),
+        }
+
         if not flag_skip_txt:
             if txt_url := extract_txt_url(soup):
                 book_id = parse.parse_qs(parse.urlparse(txt_url).query)["id"][0]
                 record["book_path"] = download_txt(txt_url, f"{book_id}_{record['title']}", books_folder)
-
-        if comments := extract_comments(soup):
-            record["comments"] = comments
-        record["genres"] = extract_genres(soup)
 
         descriptive_json.append(record)
 
