@@ -36,7 +36,7 @@ def find_books_urls(start_page, end_page):
         response.raise_for_status()
         check_for_redirect(response.status_code)
 
-        soup = BeautifulSoup(response.content, 'lxml')
+        soup = BeautifulSoup(response.content, "lxml")
 
         selector = "#content [title*='читать online']"
         for book in soup.select(selector):
@@ -55,11 +55,6 @@ def find_last_page_number() -> int:
     response.raise_for_status()
     check_for_redirect(response.status_code)
 
-    soup = BeautifulSoup(response.content, 'lxml')
+    soup = BeautifulSoup(response.content, "lxml")
 
     return int(soup.select("a.npage")[-1].text)
-
-
-if __name__ == '__main__':
-    requests.packages.urllib3.disable_warnings()
-    find_last_page_number()

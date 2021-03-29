@@ -36,7 +36,7 @@ def extract_title_author(soup) -> (str, str):
     """
 
     title_author = soup.select_one("table.tabs div#content h1").text
-    title, author = title_author.split('::')
+    title, author = title_author.split("::")
 
     return title.strip(), author.strip()
 
@@ -49,7 +49,7 @@ def download_image(soup, img_folder) -> str:
     :return: path to the image on the drive
     """
 
-    image_url = soup.select_one("table.d_book img")['src']
+    image_url = soup.select_one("table.d_book img")["src"]
     response = requests.get(f"{SITE_URL}{image_url}", verify=False)
     response.raise_for_status()
     check_for_redirect(response.status_code)
@@ -57,7 +57,7 @@ def download_image(soup, img_folder) -> str:
     image_name = os.path.basename(image_url)
     path = os.path.join(img_folder, image_name)
 
-    with open(path, 'wb') as f:
+    with open(path, "wb") as f:
         f.write(response.content)
 
     return path
@@ -72,7 +72,7 @@ def extract_txt_url(soup):
 
     link_to_txt = soup.select_one("a[title*='скачать книгу txt']")
     if link_to_txt:
-        return link_to_txt['href']
+        return link_to_txt["href"]
 
 
 def download_txt(text_url, title, books_folder) -> str:
@@ -90,7 +90,7 @@ def download_txt(text_url, title, books_folder) -> str:
 
     path = os.path.join(books_folder, f"{sanitize_filename(title)}.txt")
 
-    with open(path, 'wb') as f:
+    with open(path, "wb") as f:
         f.write(response.content)
 
     return path
@@ -139,21 +139,21 @@ def create_descriptive_json(books_urls, books_folder, img_folder, json_path, fla
             continue
 
         record = dict()
-        record['title'], record['author'] = extract_title_author(soup)
+        record["title"], record["author"] = extract_title_author(soup)
         if not flag_skip_images:
-            record['img_src'] = download_image(soup, img_folder)
+            record["img_src"] = download_image(soup, img_folder)
         if not flag_skip_txt:
             if txt_url := extract_txt_url(soup):
-                book_id = parse.parse_qs(parse.urlparse(txt_url).query)['id'][0]
-                record['book_path'] = download_txt(txt_url, f"{book_id}_{record['title']}", books_folder)
+                book_id = parse.parse_qs(parse.urlparse(txt_url).query)["id"][0]
+                record["book_path"] = download_txt(txt_url, f"{book_id}_{record['title']}", books_folder)
 
         if comments := extract_comments(soup):
-            record['comments'] = comments
-        record['genres'] = extract_genres(soup)
+            record["comments"] = comments
+        record["genres"] = extract_genres(soup)
 
         descriptive_json.append(record)
 
-    with open(os.path.join(json_path, 'library.json'), 'w', encoding='utf-8') as file:
+    with open(os.path.join(json_path, "library.json"), "w", encoding="utf-8") as file:
         json.dump(descriptive_json, file, ensure_ascii=False)
 
 
