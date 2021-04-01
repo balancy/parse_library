@@ -2,13 +2,14 @@ import argparse
 import json
 import os
 import time
-from urllib import parse
 
 from bs4 import BeautifulSoup
 from pathvalidate import sanitize_filename
 import requests
 
-from parse_tululu_category import check_for_redirect, find_last_page_number, find_books_urls
+from parse_tululu_category import (check_for_redirect,
+                                   find_last_page_number,
+                                   find_books_urls)
 
 BOOKS_FOLDER = "books/"
 IMAGES_FOLDER = "images/"
@@ -89,7 +90,8 @@ def download_txt(text_url, title, books_folder) -> str:
     response.raise_for_status()
     check_for_redirect(response.status_code)
 
-    path = os.path.join(books_folder, f"{str(time.time())}_{sanitize_filename(title)}.txt")
+    path = os.path.join(books_folder,
+                        f"{str(time.time())}_{sanitize_filename(title)}.txt")
 
     with open(path, "wb") as f:
         f.write(response.content)
@@ -106,7 +108,7 @@ def extract_comments(soup):
 
     comment_elms = soup.select("div.texts")
     if comment_elms:
-        return [f"{comment_elm.find('span').text}" for comment_elm in comment_elms]
+        return [f"{comment.find('span').text}" for comment in comment_elms]
 
 
 def extract_genres(soup):
@@ -120,15 +122,17 @@ def extract_genres(soup):
     return [genre_elm.text for genre_elm in genre_elms]
 
 
-def create_descriptive_json(books_urls, books_folder, img_folder, json_path, flag_skip_images, flag_skip_txt):
-    """Create descriptive json file containing information about all downloaded books.
+def create_descriptive_json(books_urls, books_folder, img_folder,
+                            json_path, skip_images, skip_txt):
+    """Create descriptive json file containing information about all
+    downloaded books.
 
     :param books_urls: urls for books
     :param books_folder: folder containing text versions of books
     :param img_folder: folder containing images
     :param json_path: path to save descriptive json
-    :param flag_skip_images: are images skipping
-    :param flag_skip_txt: are text versions of books skipping
+    :param skip_images: are images skipping
+    :param skip_txt: are text versions of books skipping
     """
 
     descriptive_json = []
@@ -143,21 +147,23 @@ def create_descriptive_json(books_urls, books_folder, img_folder, json_path, fla
         comments = extract_comments(soup)
 
         record = {
-            'title': title,
-            'author': author,
-            'img_src': download_image(soup, img_folder) if not flag_skip_images else None,
-            'comments': comments if comments else None,
-            'genres': extract_genres(soup),
+            "title": title,
+            "author": author,
+            "img_src":
+                download_image(soup, img_folder) if not skip_images else None,
+            "comments": comments if comments else None,
+            "genres": extract_genres(soup),
         }
 
-        if not flag_skip_txt:
+        if not skip_txt:
             if txt_url := extract_txt_url(soup):
-                # book_id = parse.parse_qs(parse.urlparse(txt_url).query)["id"][0]
-                record["book_path"] = download_txt(txt_url, record['title'], books_folder)
+                record["book_path"] = \
+                    download_txt(txt_url, record["title"], books_folder)
 
         descriptive_json.append(record)
 
-    with open(os.path.join(json_path, "library.json"), "w", encoding="utf-8") as file:
+    with open(os.path.join(json_path, "library.json"), "w", encoding="utf-8")\
+            as file:
         json.dump(descriptive_json, file, ensure_ascii=False)
 
 
@@ -173,15 +179,32 @@ def make_folders(folders_list) -> None:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Download books (title, author, genre, image, comments).")
-    parser.add_argument("-s", "--start_page", help="Which page to start download books from", type=int, default=1)
-    parser.add_argument("-e", "--end_page", help="Which page to finish download books at", type=int,
-                        default=find_last_page_number())
-    parser.add_argument("--books_folder", help="Folder to save books", default=BOOKS_FOLDER)
-    parser.add_argument("--imgs_folder", help="Folder to save images", default=IMAGES_FOLDER)
-    parser.add_argument("--skip_imgs", action="store_true", help="Skip images downloading?")
-    parser.add_argument("--skip_txt", action="store_true", help="Skip text versions downloading?")
-    parser.add_argument("--json_path", help="Folder to save descriptive json file", default='')
+    parser = argparse.ArgumentParser(
+        description="Download books (title, author, genre, image, comments)."
+    )
+    parser.add_argument(
+        "-s", "--start_page", type=int, default=1,
+        help="Which page to start download books from"
+    )
+    parser.add_argument(
+        "-e", "--end_page", type=int, default=find_last_page_number(),
+        help="Which page to finish download books at"
+    )
+    parser.add_argument(
+        "--books_folder", help="Folder to save books", default=BOOKS_FOLDER
+    )
+    parser.add_argument(
+        "--imgs_folder", help="Folder to save images", default=IMAGES_FOLDER
+    )
+    parser.add_argument(
+        "--skip_imgs", action="store_true", help="Skip images downloading?"
+    )
+    parser.add_argument(
+        "--skip_txt", action="store_true", help="Skip text versions downloading?"
+    )
+    parser.add_argument(
+        "--json_path", help="Folder to save descriptive json file", default=""
+    )
     args = parser.parse_args()
 
     requests.packages.urllib3.disable_warnings()
