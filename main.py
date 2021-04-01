@@ -1,6 +1,7 @@
 import argparse
 import json
 import os
+import time
 from urllib import parse
 
 from bs4 import BeautifulSoup
@@ -55,7 +56,7 @@ def download_image(soup, img_folder) -> str:
     check_for_redirect(response.status_code)
 
     image_name = os.path.basename(image_url)
-    path = os.path.join(img_folder, image_name)
+    path = os.path.join(img_folder, f"{str(time.time())}_{image_name}")
 
     with open(path, "wb") as f:
         f.write(response.content)
@@ -88,7 +89,7 @@ def download_txt(text_url, title, books_folder) -> str:
     response.raise_for_status()
     check_for_redirect(response.status_code)
 
-    path = os.path.join(books_folder, f"{sanitize_filename(title)}.txt")
+    path = os.path.join(books_folder, f"{str(time.time())}_{sanitize_filename(title)}.txt")
 
     with open(path, "wb") as f:
         f.write(response.content)
@@ -151,8 +152,8 @@ def create_descriptive_json(books_urls, books_folder, img_folder, json_path, fla
 
         if not flag_skip_txt:
             if txt_url := extract_txt_url(soup):
-                book_id = parse.parse_qs(parse.urlparse(txt_url).query)["id"][0]
-                record["book_path"] = download_txt(txt_url, f"{book_id}_{record['title']}", books_folder)
+                # book_id = parse.parse_qs(parse.urlparse(txt_url).query)["id"][0]
+                record["book_path"] = download_txt(txt_url, record['title'], books_folder)
 
         descriptive_json.append(record)
 
