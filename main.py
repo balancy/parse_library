@@ -57,7 +57,7 @@ def download_image(soup, img_folder) -> str:
     check_for_redirect(response.status_code)
 
     image_name = os.path.basename(image_url)
-    path = os.path.join(img_folder, f"{str(time.time())}_{image_name}")
+    path = os.path.join(img_folder, f"{time.time()}_{image_name}")
 
     with open(path, "wb") as f:
         f.write(response.content)
@@ -91,7 +91,7 @@ def download_txt(text_url, title, books_folder) -> str:
     check_for_redirect(response.status_code)
 
     path = os.path.join(books_folder,
-                        f"{str(time.time())}_{sanitize_filename(title)}.txt")
+                        f"{time.time()}_{sanitize_filename(title)}.txt")
 
     with open(path, "wb") as f:
         f.write(response.content)
